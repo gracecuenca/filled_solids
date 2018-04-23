@@ -20,6 +20,81 @@
   Color should be set differently for each polygon.
   ====================*/
 void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
+  int x0, y0, z0, x1, y1, z1, x2, y2, z2;
+  int xt, yt, xm, ym, xb, yb;
+  int tempx, tempy;
+  int y;
+  double d0, d1;
+
+  x0 = points->m[0][i];
+  y0 = points->m[1][i];
+  z0 = points->m[2][i];
+  x1 = points->m[0][i+1];
+  y1 = points->m[1][i+1];
+  z1 = points->m[2][i+1];
+  x2 = points->m[0][i+2];
+  y2 = points->m[1][i+2];
+  z2 = points->m[2][i+2];
+
+  //bottom
+  tempy = (y0 < y1 ? y0: y1);
+  tempx = (tempy == y0 ? x0: x1);
+
+  yb = (y2 < tempy ? y2: tempy);
+  xb = (yb == y2 ? x2: tempx);
+
+  //top
+  tempy = (y0 > y1 ? y0: y1);
+  tempx = (tempy == y0 ? x0: x1);
+
+  yt = (y2 > tempy ? y2: tempy);
+  xt = (yb == y2 ? x2: tempx);
+
+  //middle
+  ym = (y2 == yt ? tempy: y2);
+  xm = (y2 == yt ? tempx: x2);
+
+  /* fixin
+  y0 < y1 ? tempy = y0, tempx = x0: tempy = y1, tempx = x1;
+  y2 < tempy ? yb = y2, xb = x2: yb = tempy, xb = tempx;
+
+  y0 > y1 ? tempy = y0, tempx = x0: tempy = y1, tempx = x1;
+  y2 > tempy ? yt = y2, xt = x2: yt = tempy, xt = tempx;
+
+  y2 == yt ? ym = tempy, xm = tempx: ym = y2, xm = x2;
+  */
+
+  //neg reciprocal
+  d0 = (xt - xb)/(yt - yb);
+
+  //if bottom and middle have the same y value
+  if( yb == ym ){
+    d1 = (xm - xb)/(ym - yb);
+    x0 = xt;
+    x1 = xt;
+  }
+  else{
+    d1 = (xt - xm)/(yt - ym);
+    x0 = xb;
+    x1 = xb;
+  }
+
+  color c;
+  c.red = 50; c.green = 0; c.blue = 0;
+  y = yb;
+
+  while(y != yt){
+    //if it hits the middle
+    if( y == ym ){
+      d1 = (xm - xb)/(ym - yb);
+    }
+    draw_line(x0, y, 0, x1, y, 0, s, zb, c);
+    x0 += d0;
+    x1 += d1;
+    y++;
+  }
+
+
 
 }
 
