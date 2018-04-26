@@ -30,5 +30,8 @@ stack.o: stack.c stack.h matrix.h
 run: all
 	./main script
 
+scan: all
+	./main scanline_test
+
 clean:
 	rm *.o *~
