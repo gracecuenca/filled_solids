@@ -32,9 +32,9 @@ pixel 0, 0 located at the lower left corner of the screen
 void plot(screen s, zbuffer zb, color c, int x, int y, double z) {
   int newy = YRES - 1 - y;
   if ( x >= 0 && x < XRES && newy >=0 && newy < YRES ) {
-    if (z>zb[x][newy]) {
+    if ( z > zb[x][newy] ) {
       s[x][newy] = c;
-      zb[x][newy]=z;
+      zb[x][newy] = z;
     }
   }
 }

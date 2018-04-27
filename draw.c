@@ -20,12 +20,13 @@
 
   Color should be set differently for each polygon.
   ====================*/
+
 void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
 
   double x0, y0, z0, x1, y1, z1, x2, y2, z2;
   double xt, yt, zt, xm, ym, zm, xb, yb, zb;
   int y;
-  double d0, d1, dz0, dz1;
+  double d0, d1, d2, dz0, dz1, dz2;
 
   //color
   color c;
@@ -56,21 +57,6 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
     m = temp;
   }
 
-  /*
-  if(y0 > y1 && y0 > y2){ xt = x0; yt = y0; zt = z0; }
-  if((y0 > y1 && y0 < y2) || (y0 > y2 && y0 < y1)){ xm = x0; ym = y0; zm = z0; }
-  if(y0 < y1 && y0 < y2){ xb = x0; yb = y0; zb = z0; }
-
-  if(y1 > y2 && y1 > y2){ xt = x1; yt = y1; zt = z1; }
-  if((y1 > y0 && y1 < y2) || (y1 < y0 && y1 > y2)){ xm = x1; ym = y1; zm = z1; }
-  if(y1 < y0 && y1 < y2){ xb = x1; yb = y1; zb = z1; }
-
-  if(y2 > y1 && y2 > y0){ xt = x2; yt = y2; zt = z2; }
-  if((y2 > y1 && y2 < y0) || (y2 > y0 && y2 < y1)){ xm = x2; ym = y2; zm = z2; }
-  if(y2 < y1 && y2 < y0){ xb = x2; yb = y2; zb = z2; }
-  */
-
-  //placeholders
   x0 = points->m[0][t]; y0 = points->m[1][t]; z0 = points->m[2][t];
   x1 = points->m[0][m]; y1 = points->m[1][m]; z1 = points->m[2][m];
   x2 = points->m[0][b]; y2 = points->m[1][b]; z2 = points->m[2][b];
@@ -80,10 +66,14 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
   xb = x2; yb = y2; zb = z2;
 
   //initializations
+
   d0 = 0;
   d1 = 0;
+  d2 = 0;
   dz0 = 0;
   dz1 = 0;
+  dz2 = 0;
+
 
   x0 = xb;
   z0 = zb;
@@ -93,12 +83,15 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
 
   d0 = (xt - xb)/(yt - yb);
   if(ym - yb != 0){ d1 = (xm - xb)/(ym - yb);}
+  d2 = (xt - xm)/(yt - ym);
+
 
   dz0 = ( zt - zb ) / ( yt - yb );
   if(ym - yb != 0) { dz1 = ( zm - zb ) / ( ym - yb );}
+  dz2 = (zt - zm)/(yt - ym);
 
-  for(y = yb; y < yt; y++){
-
+  for(y = yb; y < ym; y++){
+    /**
     //if it hits the middle
     if( y == (int)ym ){
       d1 = (xt - xm)/(yt - ym);
@@ -109,6 +102,7 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
       dz1 = ( zt - zm ) / ( yt - ym );
       z1 = zm;
     }
+    **/
 
     draw_line(x0, y, z0, x1, y, z1, s, zbuff, c);
 
@@ -117,6 +111,16 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
     z0 += dz0;
     z1 += dz1;
 
+  }
+  x1 = xm;
+  z1 = zm;
+  for(y = ym; y < yt; y++){
+    draw_line(x0, y, z0, x1, y, z1, s, zbuff, c);
+
+    x0 += d0;
+    x1 += d2;
+    z0 += dz0;
+    z1 += dz2;
   }
 
 }
