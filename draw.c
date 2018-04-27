@@ -31,42 +31,21 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff, co
   x1 = points->m[0][i+1]; y1 = points->m[1][i+1]; z1 = points->m[2][i+1];
   x2 = points->m[0][i+2]; y2 = points->m[1][i+2]; z2 = points->m[2][i+2];
 
+  xt = x0; yt = y0; zt = z0;
+  xm = x1; ym = y1; zm = z1;
+  xb = x2; yb = y2; zb = z2;
+
   if(y0 > y1 && y0 > y2){ xt = x0; yt = y0; zt = z0; }
-  if(y0 > y1 && y0 < y2){ xm = x0; ym = y0; zm = z0; }
+  if((y0 > y1 && y0 < y2) || (y0 > y2 && y0 < y1)){ xm = x0; ym = y0; zm = z0; }
   if(y0 < y1 && y0 < y2){ xb = x0; yb = y0; zb = z0; }
 
   if(y1 > y2 && y1 > y2){ xt = x1; yt = y1; zt = z1; }
-  if(y1 > y0 && y1 < y2){ xm = x1; ym = y1; zm = z1; }
+  if((y1 > y0 && y1 < y2) || (y1 < y0 && y1 > y1)){ xm = x1; ym = y1; zm = z1; }
   if(y1 < y0 && y1 < y2){ xb = x1; yb = y1; zb = z1; }
 
   if(y2 > y1 && y2 > y0){ xt = x2; yt = y2; zt = z2; }
-  if(y2 > y1 && y2 < y0){ xm = x2; ym = y2; zm = z2; }
+  if((y2 > y1 && y2 < y0) || (y2 > y0 && y2 < y1)){ xm = x2; ym = y2; zm = z2; }
   if(y2 < y1 && y2 < y0){ xb = x2; yb = y2; zb = z2; }
-
-  /**
-  //bottom
-  tempy = (y0 < y1 ? y0: y1);
-  tempx = (tempy == y0 ? x0: x1);
-  tempz = (tempy == y0 ? z0: z1);
-
-  yb = (y2 < tempy ? y2: tempy);
-  xb = (yb == y2 ? x2: tempx);
-  zb = (yb == y2 ? z2: tempz);
-
-  //top
-  tempy = (y0 > y1 ? y0: y1);
-  tempx = (tempy == y0 ? x0: x1);
-  tempz = (tempy == y0 ? z0: z1);
-
-  yt = (y2 > tempy ? y2: tempy);
-  xt = (yb == y2 ? x2: tempx);
-  zt = (yb == y2 ? zb: tempz);
-
-  //middle
-  ym = (y2 == yt ? tempy: y2);
-  xm = (y2 == yt ? tempx: x2);
-  zm = (y2 == yt ? tempz: z2);
-  **/
 
   //initializations
   d0 = 0;
@@ -84,7 +63,7 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff, co
 
   y = yb;
 
-  while(y < yt){
+  while(y <= yt){
 
     //if it hits the middle
     if( y == (int)ym ){
