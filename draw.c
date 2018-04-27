@@ -23,7 +23,6 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff, co
 
   double x0, y0, z0, x1, y1, z1, x2, y2, z2;
   double xt, yt, zt, xm, ym, zm, xb, yb, zb;
-  //double tempx, tempy, tempz;
   int y;
   double d0, d1, dz0, dz1;
 
@@ -61,26 +60,25 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff, co
   if(zt - yb != 0){dz0 = ( xt - xb ) / ( zt - yb );}
   if (zm - zb != 0) { dz1 = ( xm - xb ) / ( zm - zb ); z1 = zb;}
 
-  y = yb;
-
-  while(y <= yt){
+  for(y = yb; y < yt; y++){
 
     //if it hits the middle
     if( y == (int)ym ){
       d1 = (xm - xt)/(ym - yt);
       x1 = xm;
     }
+
     if ( z1 == (int)zm ) {
       dz1 = ( xm - xt ) / ( zm - zt );
       z1 = zm;
     }
 
     draw_line(x0, y, z0, x1, y, z1, s, zbuff, c);
+
     x0 += d0;
     x1 += d1;
     z0 += dz0;
     z1 += dz1;
-    y++;
 
   }
 
@@ -143,6 +141,7 @@ void draw_polygons(struct matrix *polygons, screen s, zbuffer zb, color c ) {
       cb.blue = (cb.blue + rand()) % 255;
 
       scanline_convert(polygons, point, s, zb, cb);
+
     }
   }
 }
@@ -565,6 +564,7 @@ void draw_line(int x0, int y0, double z0,
 
   int x, y, d, A, B;
   int dy_east, dy_northeast, dx_east, dx_northeast, d_east, d_northeast;
+  double z; double dz;
   int loop_start, loop_end;
 
   //swap points if going right -> left
@@ -581,6 +581,7 @@ void draw_line(int x0, int y0, double z0,
 
   x = x0;
   y = y0;
+  z = z0;
   A = 2 * (y1 - y0);
   B = -2 * (x1 - x0);
   int wide = 0;
@@ -593,6 +594,7 @@ void draw_line(int x0, int y0, double z0,
     dx_east = dx_northeast = 1;
     dy_east = 0;
     d_east = A;
+    dz = ( z1-z0 )/( x1-x0 );
     if ( A > 0 ) { //octant 1
       d = A + B/2;
       dy_northeast = 1;
@@ -608,6 +610,7 @@ void draw_line(int x0, int y0, double z0,
     tall = 1;
     dx_east = 0;
     dx_northeast = 1;
+    dz = ( z1-z0 )/( y1-y0 );
     if ( A > 0 ) {     //octant 2
       d = A/2 + B;
       dy_east = dy_northeast = 1;
@@ -628,7 +631,7 @@ void draw_line(int x0, int y0, double z0,
 
   while ( loop_start < loop_end ) {
 
-    plot( s, zb, c, x, y, 0);
+    plot( s, zb, c, x, y, z);
     if ( (wide && ((A > 0 && d > 0) ||
                    (A < 0 && d < 0)))
          ||
@@ -643,7 +646,8 @@ void draw_line(int x0, int y0, double z0,
       y+= dy_east;
       d+= d_east;
     }
+    z += dz;
     loop_start++;
   } //end drawing loop
-  plot( s, zb, c, x1, y1, 0 );
+  plot( s, zb, c, x1, y1, z );
 } //end draw_line
