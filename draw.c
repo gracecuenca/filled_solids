@@ -25,17 +25,11 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff ) {
   double xt, yt, zt, xm, ym, zm, xb, yb, zb;
   double tempx, tempy, tempz;
   int y;
-  double d0, d1;
+  double d0, d1, dz0, dz1;
 
-  x0 = points->m[0][i];
-  y0 = points->m[1][i];
-  z0 = points->m[2][i];
-  x1 = points->m[0][i+1];
-  y1 = points->m[1][i+1];
-  z1 = points->m[2][i+1];
-  x2 = points->m[0][i+2];
-  y2 = points->m[1][i+2];
-  z2 = points->m[2][i+2];
+  x0 = points->m[0][i]; y0 = points->m[1][i]; z0 = points->m[2][i];
+  x1 = points->m[0][i+1]; y1 = points->m[1][i+1]; z1 = points->m[2][i+1];
+  x2 = points->m[0][i+2]; y2 = points->m[1][i+2]; z2 = points->m[2][i+2];
 
   //bottom
   tempy = (y0 < y1 ? y0: y1);
@@ -46,8 +40,6 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff ) {
   xb = (yb == y2 ? x2: tempx);
   zb = (yb == y2 ? z2: tempz);
 
-  printf("bottom coordinates: %lf\t %lf\t %lf\n", xb, yb, zb);
-
   //top
   tempy = (y0 > y1 ? y0: y1);
   tempx = (tempy == y0 ? x0: x1);
@@ -57,28 +49,29 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff ) {
   xt = (yb == y2 ? x2: tempx);
   zt = (yb == y2 ? zb: tempz);
 
-  printf("top coordinates: %lf\t %lf\t %lf\n", xt, yt, zt);
-
   //middle
   ym = (y2 == yt ? tempy: y2);
   xm = (y2 == yt ? tempx: x2);
   zm = (y2 == yt ? tempz: z2);
 
-  printf("middle coordinates: %lf\t %lf\t %lf\n", xm, ym, zm);
+  //initializations
+  d0 = 0;
+  d1 = 0;
+  dz0 = 0;
+  dz1 = 0;
 
-  //neg reciprocal
-  d0 = (xt - xb)/(yt - yb);
+  x0 = xb;
+  z0 = zb;
 
-  //if bottom and middle have the same y value
-  if( yb == ym ){
+  if(yt - yb != 0){ d0 = (xt - xb)/(yt - yb); }
+  if(ym - yb != 0){
     d1 = (xm - xb)/(ym - yb);
-    x0 = xt;
-    x1 = xt;
-  }
-  else{
-    d1 = (xt - xm)/(yt - ym);
-    x0 = xb;
     x1 = xb;
+  }
+  if(zt - yb != 0){dz0 = ( xt - xb ) / ( zt - yb );}
+  if (zm - zb != 0) {
+    dz1 = ( xm - xb ) / ( zm - zb );
+    z1 = zb;
   }
 
   color c;
@@ -86,10 +79,16 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff ) {
   y = (int)yb;
 
   while(y < (int)yt){
+    printf("%d\n", y);
 
     //if it hits the middle
     if( y == (int)ym ){
-      d1 = (xm - xb)/(ym - yb);
+      d1 = (xm - xt)/(ym - yt);
+      x1 = xm;
+    }
+    if ( z1 == (int)zm ) {
+      dz1 = ( xm - xt ) / ( zm - zt );
+      z1 = zm;
     }
 
     //changing the colors of the triangles
@@ -106,7 +105,10 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff ) {
     draw_line(x0, y, 0, x1, y, 0, s, zbuff, c);
     x0 += d0;
     x1 += d1;
+    z0 += dz0;
+    z1 += dz1;
     y++;
+
   }
 
 }
