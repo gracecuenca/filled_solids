@@ -33,25 +33,51 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
   c.green = (c.green + rand()) % 255;
   c.blue = (c.blue + rand()) % 255;
 
-  x0 = points->m[0][i]; y0 = points->m[1][i]; z0 = points->m[2][i];
-  x1 = points->m[0][i+1]; y1 = points->m[1][i+1]; z1 = points->m[2][i+1];
-  x2 = points->m[0][i+2]; y2 = points->m[1][i+2]; z2 = points->m[2][i+2];
+  int temp;
+  int t = i;
+  int m = i+1;
+  int b = i+2;
 
-  xt = x0; yt = y0; zt = z0;
-  xm = x1; ym = y1; zm = z1;
-  xb = x2; yb = y2; zb = z2;
+  if(points->m[1][b] > points->m[1][m]){
+    temp = b;
+    b = m;
+    m = temp;
+  }
 
+  if(points->m[1][b] > points->m[1][t]){
+    temp = t;
+    t = b;
+    b = temp;
+  }
+
+  if(points->m[1][m] > points->m[1][t]){
+    temp = t;
+    t = m;
+    m = temp;
+  }
+
+  /*
   if(y0 > y1 && y0 > y2){ xt = x0; yt = y0; zt = z0; }
   if((y0 > y1 && y0 < y2) || (y0 > y2 && y0 < y1)){ xm = x0; ym = y0; zm = z0; }
   if(y0 < y1 && y0 < y2){ xb = x0; yb = y0; zb = z0; }
 
   if(y1 > y2 && y1 > y2){ xt = x1; yt = y1; zt = z1; }
-  if((y1 > y0 && y1 < y2) || (y1 < y0 && y1 > y1)){ xm = x1; ym = y1; zm = z1; }
+  if((y1 > y0 && y1 < y2) || (y1 < y0 && y1 > y2)){ xm = x1; ym = y1; zm = z1; }
   if(y1 < y0 && y1 < y2){ xb = x1; yb = y1; zb = z1; }
 
   if(y2 > y1 && y2 > y0){ xt = x2; yt = y2; zt = z2; }
   if((y2 > y1 && y2 < y0) || (y2 > y0 && y2 < y1)){ xm = x2; ym = y2; zm = z2; }
   if(y2 < y1 && y2 < y0){ xb = x2; yb = y2; zb = z2; }
+  */
+
+  //placeholders
+  x0 = points->m[0][t]; y0 = points->m[1][t]; z0 = points->m[2][t];
+  x1 = points->m[0][m]; y1 = points->m[1][m]; z1 = points->m[2][m];
+  x2 = points->m[0][b]; y2 = points->m[1][b]; z2 = points->m[2][b];
+
+  xt = x0; yt = y0; zt = z0;
+  xm = x1; ym = y1; zm = z1;
+  xb = x2; yb = y2; zb = z2;
 
   //initializations
   d0 = 0;
@@ -62,21 +88,25 @@ void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
   x0 = xb;
   z0 = zb;
 
-  if(yt - yb != 0){ d0 = (xt - xb)/(yt - yb); }
-  if(ym - yb != 0){ d1 = (xm - xb)/(ym - yb); x1 = xb; }
-  if(zt - yb != 0){dz0 = ( xt - xb ) / ( zt - yb );}
-  if (zm - zb != 0) { dz1 = ( xm - xb ) / ( zm - zb ); z1 = zb;}
+  x1 = xb;
+  z1 = zb;
+
+  d0 = (xt - xb)/(yt - yb);
+  if(ym - yb != 0){ d1 = (xm - xb)/(ym - yb);}
+
+  dz0 = ( zt - zb ) / ( yt - yb );
+  if(ym - yb != 0) { dz1 = ( zm - zb ) / ( ym - yb );}
 
   for(y = yb; y < yt; y++){
 
     //if it hits the middle
     if( y == (int)ym ){
-      d1 = (xm - xt)/(ym - yt);
+      d1 = (xt - xm)/(yt - ym);
       x1 = xm;
     }
 
-    if ( z1 == (int)zm ) {
-      dz1 = ( xm - xt ) / ( zm - zt );
+    if ( z1 == zm ) {
+      dz1 = ( zt - zm ) / ( yt - ym );
       z1 = zm;
     }
 
