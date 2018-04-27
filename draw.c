@@ -8,6 +8,7 @@
 #include "math.h"
 #include "gmath.h"
 
+
 /*======== void scanline_convert() ==========
   Inputs: struct matrix *points
           int i
@@ -19,12 +20,18 @@
 
   Color should be set differently for each polygon.
   ====================*/
-void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff, color c ) {
+void scanline_convert( struct matrix *points, int i, screen s, zbuffer zbuff) {
 
   double x0, y0, z0, x1, y1, z1, x2, y2, z2;
   double xt, yt, zt, xm, ym, zm, xb, yb, zb;
   int y;
   double d0, d1, dz0, dz1;
+
+  //color
+  color c;
+  c.red = (c.red + rand()) % 255;
+  c.green = (c.green + rand()) % 255;
+  c.blue = (c.blue + rand()) % 255;
 
   x0 = points->m[0][i]; y0 = points->m[1][i]; z0 = points->m[2][i];
   x1 = points->m[0][i+1]; y1 = points->m[1][i+1]; z1 = points->m[2][i+1];
@@ -127,20 +134,12 @@ void draw_polygons(struct matrix *polygons, screen s, zbuffer zb, color c ) {
 
   int point;
   double *normal;
-  color cb;
-  cb.red = 0;
-  cb.blue = 0;
-  cb.green = 0;
 
   for (point=0; point < polygons->lastcol-2; point+=3) {
     normal = calculate_normal(polygons, point);
     if ( normal[2] > 0 ) {
 
-      cb.red = (cb.red + rand()) % 255;
-      cb.green = (cb.green + rand()) % 255;
-      cb.blue = (cb.blue + rand()) % 255;
-
-      scanline_convert(polygons, point, s, zb, cb);
+      scanline_convert(polygons, point, s, zb);
 
     }
   }
