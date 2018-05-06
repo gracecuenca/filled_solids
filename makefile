@@ -33,5 +33,8 @@ run: all
 scan: all
 	./main scanline_test
 
+img: all
+	./main file
+
 clean:
 	rm *.o *~
